@@ -16,11 +16,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const [review] = await sql<Review[]>`
+  const [review] = (await sql`
     INSERT INTO reviews (name, email, position, source, photo_url)
     VALUES (${name.trim()}, ${email.trim()}, ${position.trim()}, ${source.trim()}, ${photo_url ?? null})
     RETURNING *
-  `;
+  `) as Review[];
 
   return Response.json({ review }, { status: 201 });
 }
