@@ -10,10 +10,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { author_name, author_position, author_source, review_text, response_text } = body;
+  const { author_name, author_position, author_source, review_text, response_text, stars } = body;
 
   const missing = (
-    ["author_name", "author_position", "author_source", "review_text", "response_text"] as const
+    ["author_name", "author_position", "review_text", "response_text"] as const
   ).filter((f) => !body[f]?.toString().trim());
 
   if (missing.length > 0) {
@@ -23,14 +23,17 @@ export async function POST(request: Request) {
     );
   }
 
+  const starsValue = stars != null ? Number(stars) : null;
+
   const [post] = (await sql`
-    INSERT INTO posts (author_name, author_position, author_source, review_text, response_text)
+    INSERT INTO posts (author_name, author_position, author_source, review_text, response_text, stars)
     VALUES (
       ${author_name.trim()},
       ${author_position.trim()},
-      ${author_source.trim()},
+      ${author_source?.trim() || ""},
       ${review_text.trim()},
-      ${response_text.trim()}
+      ${response_text.trim()},
+      ${starsValue}
     )
     RETURNING *
   `) as Post[];

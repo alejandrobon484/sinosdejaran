@@ -27,6 +27,8 @@ export interface Post {
   author_source: string;
   review_text: string;
   response_text: string;
+  stars?: number | null;
+  likes: number;
   created_at: Date;
 }
 
@@ -38,6 +40,15 @@ export const CREATE_POSTS_TABLE = `
     author_source   TEXT NOT NULL,
     review_text     TEXT NOT NULL,
     response_text   TEXT NOT NULL,
+    stars           INTEGER,
     created_at      TIMESTAMP DEFAULT NOW()
   )
+`;
+
+export const ALTER_POSTS_ADD_STARS = `
+  ALTER TABLE posts ADD COLUMN IF NOT EXISTS stars INTEGER
+`;
+
+export const ALTER_POSTS_ADD_LIKES = `
+  ALTER TABLE posts ADD COLUMN IF NOT EXISTS likes INTEGER DEFAULT 0
 `;

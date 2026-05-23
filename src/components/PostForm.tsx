@@ -8,6 +8,7 @@ interface FormState {
   author_source: string;
   review_text: string;
   response_text: string;
+  stars: number;
 }
 
 const empty: FormState = {
@@ -16,10 +17,12 @@ const empty: FormState = {
   author_source: "",
   review_text: "",
   response_text: "",
+  stars: 0,
 };
 
 export default function PostForm({ onCreated }: { onCreated?: () => void }) {
   const [form, setForm] = useState<FormState>(empty);
+  const [hoveredStars, setHoveredStars] = useState(0);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -38,7 +41,7 @@ export default function PostForm({ onCreated }: { onCreated?: () => void }) {
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, stars: form.stars || null }),
       });
 
       const data = await res.json();
@@ -52,6 +55,7 @@ export default function PostForm({ onCreated }: { onCreated?: () => void }) {
       setStatus("success");
       setMessage("¡Post publicado correctamente!");
       setForm(empty);
+      setHoveredStars(0);
       onCreated?.();
     } catch {
       setStatus("error");
@@ -61,9 +65,52 @@ export default function PostForm({ onCreated }: { onCreated?: () => void }) {
 
   return (
     <div className="mx-auto w-full max-w-2xl rounded-2xl bg-white p-4 shadow-md sm:p-8">
-      <h2 className="mb-6 text-xl font-semibold text-zinc-800 sm:text-2xl">Nuevo post</h2>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3">
+          <h2 className="text-xl font-semibold text-zinc-800 sm:text-2xl">Nuevo post</h2>
+          <p className="text-sm text-zinc-500">
+            Copia el texto de la reseña que recibiste, pégalo en el campo de abajo y selecciona las
+            estrellas que te dejaron. Luego escribe tu respuesta y publícala. Es así de sencillo.
+          </p>
+        </div>
+        <img
+          src="/images/camarera_avatar.png"
+          alt="Avatar"
+          className="h-[100px] w-[100px] flex-shrink-0 rounded-xl object-cover sm:h-[160px] sm:w-[160px]"
+        />
+      </div>
 
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-zinc-600">Estrellas recibidas</span>
+          <div
+            className="flex gap-1"
+            onMouseLeave={() => setHoveredStars(0)}
+          >
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, stars: prev.stars === n ? 0 : n }))}
+                onMouseEnter={() => setHoveredStars(n)}
+                className="p-0.5 focus:outline-none"
+                aria-label={`${n} estrella${n > 1 ? "s" : ""}`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width={28}
+                  height={28}
+                  fill={(hoveredStars || form.stars) >= n ? "#FBBC04" : "#e4e4e7"}
+                  className="transition-colors duration-100"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <Field label="Reseña recibida" required>
           <textarea
             name="review_text"
@@ -113,13 +160,12 @@ export default function PostForm({ onCreated }: { onCreated?: () => void }) {
             />
           </Field>
 
-          <Field label="Procedencia" required>
+          <Field label="Procedencia">
             <input
               type="text"
               name="author_source"
               value={form.author_source}
               onChange={handleChange}
-              required
               placeholder="Ej: H&M"
               className={inputCls}
             />
