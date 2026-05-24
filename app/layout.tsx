@@ -3,6 +3,7 @@ import { Playfair_Display, Lato } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
+import { Analytics } from "@vercel/analytics/next";
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <Navbar />
         <div style={{ flex: 1, paddingTop: "64px" }}>{children}</div>
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
